@@ -1,8 +1,11 @@
 <template>
     <div class="page-my-account">
         <h1 class="title">My Account</h1>
-
-        <button @click="logout()" class="button is-danger">Log Out</button>
+        <div class="button">
+            <router-link to="/dashboard/my-account/edit-team" class="button is-loght">Edit Team</router-link>
+            <button @click="logout()" class="button is-danger">Log Out</button>
+        </div>
+       
     </div>
     
 </template>
