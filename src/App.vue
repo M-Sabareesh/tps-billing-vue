@@ -9,7 +9,7 @@
         <div class="navbar-end">
           <template v-if="$store.state.isAuthenticated">
             <router-link to="/dashboard" class="navbar-item">Dashboard</router-link>
-
+            <router-link to="/dashboard/clients" class="navbar-item">Clients</router-link>
             <div class="navbar-item">
               <div class="buttons">
                 <router-link to="/dashboard/my-account" class="button is-light">My Account</router-link>
@@ -50,8 +50,10 @@
 
       const token = this.$store.state.token
 
-      if (token){ 
-        axios.defaults.headers.common()
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = "Token " + token
+      } else {
+        axios.defaults.headers.common['Authorization'] = ""
       }
     }
   }

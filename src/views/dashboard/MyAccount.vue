@@ -10,8 +10,7 @@
 <script>
 import axios from 'axios';
 
-
-export default {
+    export default {
     name: "MyAccount",
     methods: {
         logout() {
