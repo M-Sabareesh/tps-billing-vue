@@ -41,6 +41,7 @@ export default {
                 .get('/api/v1/clients/')
                 .then(response => {
                     for (let i=0; i < response.data.length; i++) {
+                        console.log("CLI ", response)
                         this.clients.push(response.data[i])
                     }
                 })
