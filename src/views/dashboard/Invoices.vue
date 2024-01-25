@@ -12,6 +12,7 @@
                             <th>#</th>
                             <th>Client</th>
                             <th>Amount</th>
+                            <th>Date of Purchase</th>
                             <th>Is paid</th>
                             <th></th>
                         </tr>
@@ -22,9 +23,10 @@
                             v-for="invoice in invoices"
                             v-bind:key="invoice.id"
                         >
-                            <td>{{ invoice.id }}</td>
+                            <td>{{ invoice.invoice_number }}</td>
                             <td>{{ invoice.client_name }}</td>
                             <td>{{ invoice.gross_amount }}</td>
+                            <td>{{ formatInvoiceDate(invoice.created_at) }}</td>
                             <td>{{ invoice.is_paid }}</td>
                             <td>
                                 <router-link :to="{ name: 'Invoice', params: { id: invoice.id }}">Details</router-link>
@@ -62,7 +64,12 @@ export default {
                 .catch(error => {
                     console.log(JSON.stringify(error))
                 })
-        }
+        },
+        formatInvoiceDate(dateString) {
+            const originalDate = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return originalDate.toLocaleDateString('en-US', options);
+        },
     }
 }
 </script>

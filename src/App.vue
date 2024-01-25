@@ -5,7 +5,7 @@
         <router-link to="/" class="navbar-item"><strong>TPS GOLD</strong></router-link>
       </div>
 
-      <div class="navbar menu">
+      <div class="navbar-menu">
         <div class="navbar-end">
           <template v-if="$store.state.isAuthenticated">
             <router-link to="/dashboard" class="navbar-item">Dashboard</router-link>

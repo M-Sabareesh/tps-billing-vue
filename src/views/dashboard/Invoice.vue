@@ -3,6 +3,10 @@
         <div class="columns is-multiline">
             <div class="column is-12">
                 <h1 class="title">Invoice - {{ invoice.invoice_number }}</h1>
+
+                <hr>
+
+                <button @click="getPdf()" class="button is-dark">Download PDF</button>
             </div>
 
             <div class="column is-12">
@@ -22,23 +26,33 @@
                 <table class="table is-fullwidth">
                     <thead>
                         <tr>
-                            <td>#</td>
-                            <td>Title</td>
+                            <td>Metal</td>
+                            <td>Jewel</td>
                             <td>Price per gram</td>
-                            <td>Weight</td>
+                            <td>Item Weight</td>
+                            <td>Stone Weight</td>
+                            <td>Net Weight</td>
+                            <td>Stone Price</td>
+                            <td>Making charges</td>
+                            <td>VAT Rate</td>
                             <td>Total Price</td>
                         </tr>
                     </thead>
 
                     <tbody>
                         <tr 
-                            v-for="item in items"
+                            v-for="item in invoice.items"
                             v-bind:key="item.id"
                         >
-                            <td>{{ item.id }}</td>
-                            <td>{{ item.title }}</td>
+                            <td>{{ item.metal }}</td>
+                            <td>{{ item.jewel }}</td>
                             <td>{{ item.price_per_gram }}</td>
                             <td>{{ item.item_weight }}</td>
+                            <td>{{ item.stone_weight }}</td>
+                            <td>{{ item.net_weight }}</td>
+                            <td>{{ item.stone_price }}</td>
+                            <td>{{ item.making_charges }}</td>
+                            <td>{{ item.vat_rate }}</td>
                             <td>{{ item.net_amount }}</td>
                         </tr>
                     </tbody>
@@ -50,6 +64,7 @@
 
 <script>
     import axios from 'axios'
+    const fileDownload = require('js-file-download')
 
     export default {
         name: 'Invoice',
@@ -59,9 +74,8 @@
                 items: []
             }
         },
-        async mounted() {
-            await this.getInvoice()
-            await this.getItems()
+        mounted() {
+            this.getInvoice()
         },
         methods: {
             getInvoice() {
@@ -76,17 +90,20 @@
                         console.log(JSON.stringify(error))
                     })
             },
-            getItems() {
+            getPdf() {
                 const invoiceID = this.$route.params.id
 
                 axios
-                    .get(`/api/v1/items/?invoice_id=${invoiceID}`)
-                    .then(response => {
-                        this.items = response.data
+                    .get(`/api/v1/invoices/${invoiceID}/generate_pdf/`, {
+                        responseType: 'blob',
+                    })
+                    .then(res => {
+                        fileDownload(res.data, `invoice_${invoiceID}.pdf`);
                     })
                     .catch(error => {
-                        console.log(JSON.stringify(error))
+                        console.log(error)
                     })
+
             }
         }
     }

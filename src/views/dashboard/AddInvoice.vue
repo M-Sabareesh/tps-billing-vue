@@ -36,18 +36,42 @@
                     v-for="item in invoice.items"
                     v-bind:key="item.item_num"
                     v-bind:initialItem="item"
+                    @remove-item="removeItem(item)"
                     v-on:updatePrice="updateTotals"
                 >
                 </ItemForm>
 
                 <button class="button is-light" @click="addItem">+</button>
             </div>
+            
+            <div class="column is-8">
+                <h2 class="is-size-5 mb-4">Misc</h2>
+
+                <div class="field">
+                    <label>Due days</label>
+
+                    <div class="control">
+                        <input type="number" class="input" v-model="invoice.due_days">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Sender Reference</label>
+
+                    <div class="control">
+                        <input type="number" class="input" v-model="invoice.sender_reference">
+                    </div>
+                </div>
+
+            </div>
+
         </div>
 
         <div class="column is-12">
             <h2 class="is-size-5 mb-4">Total</h2>
 
             <p><strong>Net amount</strong>: {{ invoice.net_amount }}</p>
+            <p><strong>Making Charges</strong>: {{ invoice.making_charge }}</p>
             <p><strong>Vat amount</strong>: {{ invoice.vat_amount }}</p>
             <p><strong>Gross amount</strong>: {{ invoice.gross_amount }}</p>
         </div>
@@ -76,12 +100,20 @@ export default {
                     {
                         item_num: 0,
                         title: '',
+                        metal: '',
+                        jewel: '',
                         price_per_gram: 0,
                         item_weight: 1,
+                        stone_weight: 0,
+                        net_weight: 1,
+                        stone_price: 0,
+                        making_charges: 0,
                         vat_rate: 0,
                         net_amount: 0
                     }
                 ],
+                due_days:  14,
+                making_charge: 0,
                 net_amount: 0,
                 vat_amount: 0,
                 gross_amount: 0
@@ -107,16 +139,28 @@ export default {
             this.invoice.items.push({
                 item_num: this.invoice.items.length,
                 title: '',
+                metal: '',
+                jewel: '',
                 price_per_gram: 0,
                 item_weight: 1,
+                stone_weight: 0,
+                net_weight: 1,
+                stone_price: 0,
+                making_charges: 0,
                 vat_rate: 0,
                 net_amount: 0
             })
         },
+        removeItem(itemToRemove) {
+            const indexToRemove = this.invoice.items.findIndex(item => item === itemToRemove);
+            if (indexToRemove !== -1) {
+                this.invoice.items.splice(indexToRemove, 1);
+            }
+        },
         updateTotals(changedItem) {
             let net_amount = 0
             let vat_amount = 0
-
+            let making_charge = 0
             let item = this.invoice.items.filter(i => i.item_num === changedItem.item_num)
             item = changedItem
 
@@ -125,11 +169,13 @@ export default {
 
                 vat_amount += this.invoice.items[i].net_amount * (vat_rate / 100)
                 net_amount += this.invoice.items[i].net_amount
+                making_charge += this.invoice.items[i].making_charges
             }
 
             this.invoice.net_amount = net_amount
             this.invoice.vat_amount = vat_amount
-            this.invoice.gross_amount = net_amount + vat_amount
+            this.invoice.making_charge = making_charge
+            this.invoice.gross_amount = net_amount + vat_amount + making_charge
             this.invoice.discount_amount = 0
         },
         submitForm() {
