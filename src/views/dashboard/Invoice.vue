@@ -1,6 +1,6 @@
 <template>
     <div class="page-invoice">
-        <nav class="breadcrumb" arial-label="breadcrumbs">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
             <ul>
                 <li><router-link to="/dashboard">Dashboard</router-link></li>
                 <li><router-link to="/dashboard/invoices">Invoices</router-link></li>
@@ -14,7 +14,12 @@
                 <hr>
                 <div class="buttons">
                     <button @click="getPdf()" class="button is-dark">Download PDF</button>
-                    <button @click="setAsPaid()" class="button is-success" v-if="!invoice.is_paid">Set as paid</button>
+
+                    <template v-if="!invoice.is_credit_for && !invoice.is_credited">
+                        <button @click="setAsPaid()" class="button is-success" v-if="!invoice.is_paid">Set as paid</button>
+                        <button @click="createCreditNote()" class="button is-danger" v-if="!invoice.is_paid">Create credit note</button>
+                    </template>
+                    <button @click="sendReminder()" class="button is-info" v-if="!invoice.is_paid">Send reminder</button>
                 </div>
             </div>
 
@@ -146,7 +151,7 @@
                 }
             }, 
             getInvoiceType() {
-                if (this.invoice.invoice_type === 'creditnote') {
+                if (this.invoice.invoice_type === 'credit_note') {
                     return "Credit note"
                 } else {
                     return "Invoice"
@@ -155,7 +160,7 @@
             getItemTotal(item) {
                 const price_per_gram = item.price_per_gram
                 const weight = item.net_weight
-                const total = item.net_amount + (item.net_amount * (item.vat_amount / 100))
+                const total = item.net_amount + (item.net_amount * (item.vat_rate / 100))
 
                 return parseFloat(total).toFixed(2)
             },
@@ -171,7 +176,7 @@
                         toast({
                             message: 'The change was saved',
                             type: 'is-success',
-                            dismissable: true,
+                            dismissible: true,
                             pauseOnHover: true,
                             duration: 2000,
                             position: 'bottom-right',
@@ -181,6 +186,69 @@
                         console.log(JSON.stringify(error))
                     })       
                 this.invoice.items = items     
+            },
+            async createCreditNote() {
+                this.invoice.is_credited = true
+
+                let items = this.invoice.items
+                delete this.invoice['items']
+
+                await axios
+                    .patch(`/api/v1/invoices/${this.invoice.id}/`, this.invoice)
+                    .then(response => {
+                        toast({
+                            message: 'The change was saved',
+                            type: 'is-success',
+                            dismissible: true,
+                            pauseOnHover: true,
+                            duration: 2000,
+                            position: 'bottom-right',
+                        })
+                    })                    
+                    .catch(error => {
+                        console.log(JSON.stringify(error))
+                    })   
+                this.invoice.items = items      
+                let creditNote = this.invoice
+                creditNote.is_credit_for = this.invoice.id
+                creditNote.is_credited = false
+                creditNote.invoice_type = 'credit_note'
+                
+                delete creditNote['id']
+
+                await axios
+                    .post('/api/v1/invoices/', creditNote)
+                    .then(response => {
+                        toast({
+                            message: 'The credit note was created',
+                            type: 'is-success',
+                            dismissable: true,
+                            pauseOnHover: true,
+                            duration: 2000,
+                            position: 'bottom-right',
+                        })
+                        this.$router.push('/dashboard/invoices')
+                    })                    
+                    .catch(error => {
+                        console.log(JSON.stringify(error))
+                    })      
+            },
+            sendReminder() {
+                axios
+                    .get(`/api/v1/invoices/${this.invoice.id}/send_reminder/`)
+                    .then(response => {
+                        toast({
+                            message: 'The credit note was created',
+                            type: 'is-success',
+                            dismissable: true,
+                            pauseOnHover: true,
+                            duration: 2000,
+                            position: 'bottom-right',
+                        })
+                    })
+                    .catch(error => {
+                        console.log(JSON.stringify(error))
+                    }) 
             }
         }
     }
